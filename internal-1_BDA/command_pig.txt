@@ -1,0 +1,70 @@
+``Pig Filter Executed Steps :-``
+
+Start Pig in Local Mode :-
+pig -x local
+
+Load Data :-
+records = LOAD 'weather_sample.txt' AS (year:chararray, temperature:int, quality:int);
+
+Describe Relation :-
+DESCRIBE records;
+
+Dump Relation :-
+DUMP records;
+
+Filter Records :-
+filtered_records = FILTER records BY temperature != 9999 AND quality IN (0, 1, 4, 5, 9);
+
+Dump Filtered Records :-
+DUMP filtered_records;
+
+Group Records by Year :-
+grouped_records = GROUP filtered_records BY year;
+
+Dump Grouped Records :-
+DUMP grouped_records;
+
+Calculate Maximum Temperature by Year :-
+max_temp = FOREACH grouped_records GENERATE group, MAX(filtered_records.temperature);
+
+Dump Maximum Temperature :-
+DUMP max_temp;
+
+
+``Pig UDF Executed Steps :-``
+
+Check Jython Version :-
+jython –version
+
+Install Jython :-
+sudo apt install jython
+
+Start Pig in Local Mode :-
+pig -x local
+
+Set UDF Import List :-
+set script.pig.udf.import.list myudf;
+
+Run Pig Script in Local Mode :-
+pig -x local filter_eval_udf.pig
+
+Debug UDF :-
+jython myudf.py
+
+Register UDF :-
+REGISTER 'myudf.py' USING jython AS myudf;
+
+Load Student Data :-
+students = LOAD 'students.txt' USING PigStorage(',') AS (name:chararray, marks:int);
+
+Apply Filter UDF :-
+passed_students = FILTER students BY myudf.pass_students(marks) == 'true';
+
+Dump Passed Students :-
+DUMP passed_students;
+
+Apply Eval UDF :-
+squared_values = FOREACH students GENERATE name, myudf.square(marks);
+
+Dump Squared Values :-
+DUMP squared_values;
