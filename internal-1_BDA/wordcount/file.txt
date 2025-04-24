@@ -1,8 +1,0 @@
-car
-dog 
-bag 
-car
-dog
-car
-bird
-car
