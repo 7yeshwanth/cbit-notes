@@ -40,3 +40,16 @@ Below are the files available in this repository. Click on the links to access e
 - [`weather.txt`](weather.txt)
 
 ---
+
+## To view code from terminal
+
+```bash
+# Clone the repository
+git clone https://github.com/7yeshwanth/cbit-notes.git 
+
+# Move into the cloned directory
+cd cbit-notes
+
+# To view code in file
+cat file.md
+```

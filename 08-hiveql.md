@@ -53,7 +53,11 @@ PARTITIONED BY (year STRING)
 ROW FORMAT DELIMITED 
 FIELDS TERMINATED BY '\t';
 ```
-
+```sql
+LOAD DATA LOCAL INPATH '/home/hadoop/weather.txt'
+INTO TABLE weather_p
+PARTITION (year = '2025');
+```
 ```sql
 ALTER TABLE weather_p ADD PARTITION (year='1990');
 ```
