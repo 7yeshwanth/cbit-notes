@@ -352,38 +352,87 @@ print(predict("Very good"))  # Should return: {"sentiment": "Positive", "confide
 ## ***RNN Sentiment***
 ```py
 import tensorflow as tf
-from tensorflow.keras import Sequential
-from tensorflow.keras.layers import Embedding, SimpleRNN, Dense
-from tensorflow.keras.preprocessing.sequence import pad_sequences
 from tensorflow.keras.datasets import imdb
+from tensorflow.keras.preprocessing import sequence
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Embedding, SimpleRNN, LSTM, GRU, Dense
+import matplotlib.pyplot as plt
+
+# Hyperparameters
+num_words = 5000
+max_len = 100
+embedding_dim = 64
 
 # Load and preprocess data
-vocab_size, max_length = 10000, 200
-(x_train, y_train), (x_test, y_test) = imdb.load_data(num_words=vocab_size)
-x_train = pad_sequences(x_train, maxlen=max_length, padding='post')
-x_test = pad_sequences(x_test, maxlen=max_length, padding='post')
+(x_train, y_train), (x_test, y_test) = imdb.load_data(num_words=num_words)
+x_train, x_test = sequence.pad_sequences(x_train, maxlen=max_len), sequence.pad_sequences(x_test, maxlen=max_len)
 
-# Build and train model
-model = Sequential([
-    Embedding(vocab_size, 128, input_length=max_length),
-    SimpleRNN(64, activation='relu'),
-    Dense(1, activation='sigmoid')
-])
-model.compile(optimizer=tf.keras.optimizers.Adam(0.0005),
-              loss='binary_crossentropy',
-              metrics=['accuracy'])
-model.fit(x_train, y_train, epochs=10, batch_size=64, validation_data=(x_test, y_test))
+# Define RNN models
+def build_model(rnn_layer):
+    model = Sequential([
+        Embedding(num_words, embedding_dim, input_length=max_len),
+        rnn_layer,
+        Dense(1, activation='sigmoid')
+    ])
+    return model
 
-# Evaluate
-loss, accuracy = model.evaluate(x_test, y_test)
-print(f"Test Accuracy: {accuracy:.4f}")
+models_config = [
+    {'name': 'SimpleRNN', 'layer': SimpleRNN(64)},
+    {'name': 'LSTM', 'layer': LSTM(64)},
+    {'name': 'GRU', 'layer': GRU(64)}
+]
 
-# Predict
-sample = ["this movie was fantastic"]
-sample_seq = tf.keras.preprocessing.text.text_to_word_sequence(sample[0])
-sample_idx = [[imdb.get_word_index().get(word, 0) for word in sample_seq if imdb.get_word_index().get(word, 0) < vocab_size]]
-sample_pad = pad_sequences(sample_idx, maxlen=max_length)
-print("Sentiment:", "Positive" if model.predict(sample_pad) > 0.5 else "Negative")
+results = []
+
+for config in models_config:
+    print(f"\n=== Training {config['name']} ===")
+    
+    model = build_model(config['layer'])
+    model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['acc'])
+    model.summary()
+
+    history = model.fit(x_train, y_train,
+                        validation_split=0.2,
+                        epochs=3,
+                        batch_size=128,
+                        verbose=0)
+
+    # Evaluate on test set
+    test_loss, test_acc = model.evaluate(x_test, y_test, verbose=0)
+    print(f"Test Accuracy: {test_acc:.4f}")
+
+    # Store results
+    results.append({'name': config['name'], 'history': history, 'test_acc': test_acc})
+
+    # Sample prediction
+    sample_idx = [0, 1, 2]
+    sample_pred = model.predict(x_test[sample_idx])
+    print("Sample Predictions vs True Labels:")
+    for i in sample_idx:
+        print(f"Pred: {sample_pred[i][0]:.4f} | Actual: {y_test[i]}")
+
+# Plot training performance comparison
+plt.figure(figsize=(12, 5))
+
+plt.subplot(1, 2, 1)
+for res in results:
+    plt.plot(res['history'].history['acc'], label=f"{res['name']}_train")
+    plt.plot(res['history'].history['val_acc'], '--', label=f"{res['name']}_val")
+plt.title("Accuracy")
+plt.legend()
+
+plt.subplot(1, 2, 2)
+for res in results:
+    plt.plot(res['history'].history['loss'], label=f"{res['name']}_train")
+    plt.plot(res['history'].history['val_loss'], '--', label=f"{res['name']}_val")
+plt.title("Loss")
+plt.legend()
+plt.show()
+
+# Summary comparison
+print("\n=== Model Comparison ===")
+for res in results:
+    print(f"{res['name']}: Test Acc = {res['test_acc']:.4f}")
 ```
 
 [Colab link](https://colab.research.google.com/drive/1Ichfj_fo9nj5AWhzDwL4nch9sa9gewoo?authuser=1#scrollTo=8bltWhMxvbg_)
