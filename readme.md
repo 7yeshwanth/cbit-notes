@@ -248,7 +248,7 @@ g.setwarnings(0)
 pin = 17 # P15
 rs = 33  # P11
 e = 31   # P11
-data_pins = [40, 38, 36, 32] # P11 -> D4567
+data_pins = [40, 38, 36, 32] # P1 -> D4567
 sensor = dht.DHT11
 
 lcd = CharLCD(cols=20, rows=4, pin_rs=rs, pin_e=e, pins_data=data_pins, numbering_mode=g.BOARD)
