@@ -313,7 +313,7 @@ g.setup(gas, g.IN, pull_up_down=g.PUD_DOWN)
 print("Starting...")
 try:
     while True:
-        if g.input(gas):
+        if g.input(gas) == 0:
             print("Gas Detected")
         else:
             print("No Gas")
@@ -341,7 +341,7 @@ g.setup(buz, g.OUT)
 print("Starting...")
 try:
     while True:
-        if g.input(gas):
+        if g.input(gas) == 0:
             print("Gas Detected")
             g.output(buz, 1)
         else:
